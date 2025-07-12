@@ -10,6 +10,10 @@ import {
   Invoice,
   Transaction,
   ReimbursementRequest,
+  ProductReimbursementRequest,
+  StoreCommission,
+  StoreAnalytics,
+  ProductRecommendation,
   RedemptionRequest,
   RedemptionResponse,
   WalletBalance,
@@ -20,6 +24,7 @@ import {
   ProductFilters,
   TransactionFilters,
   HealthCheck,
+  InvoiceProcessingStatus,
 } from '@/types';
 
 class ApiClient {
@@ -154,7 +159,7 @@ class ApiClient {
     return response.data;
   }
 
-  // Wallet endpoints - CORRECTED URLs
+  // Wallet endpoints
   async getWalletBalance(): Promise<WalletBalance> {
     const response = await this.client.get<WalletBalance>('/auth/wallet/balance/');
     return response.data;
@@ -167,7 +172,7 @@ class ApiClient {
     return response.data;
   }
 
-  // Store endpoints - CORRECTED URLs
+  // Store endpoints
   async getStores(filters?: StoreFilters): Promise<PaginatedResponse<Store>> {
     const response = await this.client.get<PaginatedResponse<Store>>('/wallet/stores/', {
       params: filters,
@@ -180,7 +185,18 @@ class ApiClient {
     return response.data;
   }
 
-  // Product endpoints - CORRECTED URLs
+  // Store Analytics endpoints
+  async getStoreAnalytics(storeId: number): Promise<StoreAnalytics> {
+    const response = await this.client.get<StoreAnalytics>(`/stores/${storeId}/analytics/`);
+    return response.data;
+  }
+
+  async getStoreCommissions(storeId: number): Promise<PaginatedResponse<StoreCommission>> {
+    const response = await this.client.get<PaginatedResponse<StoreCommission>>(`/stores/${storeId}/commissions/`);
+    return response.data;
+  }
+
+  // Product endpoints
   async getProducts(filters?: ProductFilters): Promise<PaginatedResponse<Product>> {
     const response = await this.client.get<PaginatedResponse<Product>>('/wallet/products/', {
       params: filters,
@@ -193,9 +209,36 @@ class ApiClient {
     return response.data;
   }
 
+  // Product Recommendations
+  async getProductRecommendations(userId?: number): Promise<ProductRecommendation[]> {
+    const response = await this.client.get<ProductRecommendation[]>('/wallet/products/recommendations/', {
+      params: userId ? { user_id: userId } : {},
+    });
+    return response.data;
+  }
+
   async redeemProduct(request: RedemptionRequest): Promise<RedemptionResponse> {
     const response = await this.client.post<RedemptionResponse>('/invoices/redeem/', request);
     return response.data;
+  }
+
+  // Product Reimbursement Management
+  async getProductReimbursementRequests(storeId?: number): Promise<PaginatedResponse<ProductReimbursementRequest>> {
+    const response = await this.client.get<PaginatedResponse<ProductReimbursementRequest>>('/stores/product-reimbursements/', {
+      params: storeId ? { store_id: storeId } : {},
+    });
+    return response.data;
+  }
+
+  async updateProductReimbursementRequest(
+    id: number, 
+    status: 'approved' | 'shipped' | 'rejected',
+    adminNotes?: string
+  ): Promise<void> {
+    await this.client.patch(`/stores/product-reimbursements/${id}/`, {
+      status,
+      admin_notes: adminNotes,
+    });
   }
 
   // Invoice endpoints
@@ -217,7 +260,12 @@ class ApiClient {
     return response.data;
   }
 
-  // Admin endpoints - CORRECTED URLs
+  async getInvoiceProcessingStatus(invoiceId: number): Promise<InvoiceProcessingStatus> {
+    const response = await this.client.get<InvoiceProcessingStatus>(`/invoices/${invoiceId}/status/`);
+    return response.data;
+  }
+
+  // Admin endpoints
   async getDashboardStats(): Promise<DashboardStats> {
     const response = await this.client.get<DashboardStats>('/wallet/stats/');
     return response.data;
@@ -248,13 +296,13 @@ class ApiClient {
     });
   }
 
-  // Health check - CORRECTED URL
+  // Health Check
   async healthCheck(): Promise<HealthCheck> {
-    const response = await this.client.get<HealthCheck>('/wallet/health/');
+    const response = await this.client.get<HealthCheck>('/health/');
     return response.data;
   }
 
-  // Utility methods
+  // File Upload Helper
   async uploadFile(file: File, endpoint: string): Promise<unknown> {
     const formData = new FormData();
     formData.append('file', file);
@@ -275,17 +323,16 @@ class ApiClient {
     data?: unknown,
     config?: Record<string, unknown>
   ): Promise<T> {
-    const response: AxiosResponse<T> = await this.client.request({
+    const response = await this.client.request({
       method,
       url: endpoint,
       data,
-      ...(config || {}),
+      ...config,
     });
     
     return response.data;
   }
 }
 
-// Create and export a singleton instance
 export const apiClient = new ApiClient();
 export default apiClient; 

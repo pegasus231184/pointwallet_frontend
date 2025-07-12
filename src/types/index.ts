@@ -49,6 +49,7 @@ export interface Store {
   company: number;
   company_name: string;
   points_balance: number;
+  store_points_balance: number;
   total_sales: number;
   email?: string;
   phone?: string;
@@ -56,20 +57,53 @@ export interface Store {
   created_at: string;
 }
 
+// Updated Product model to match backend structure
 export interface Product {
   id: number;
-  store: number;
-  store_name: string;
+  company: number;
+  company_name: string;
   name: string;
   description?: string;
-  base_cost: number;
-  margin_percentage: number;
-  retail_price: number;
+  points_value: number;
+  points_cost: number;
+  store_points_earned: number;
   inventory: number;
   is_active: boolean;
   created_at: string;
-  margin_amount: number;
-  points_earned: number;
+  updated_at: string;
+}
+
+// Store Commission model
+export interface StoreCommission {
+  id: number;
+  store: number;
+  store_name: string;
+  transaction: number;
+  commission_amount: number;
+  commission_percentage: number;
+  transaction_type: 'sale' | 'redemption';
+  notes?: string;
+  created_at: string;
+  product_name?: string;
+}
+
+// Product Reimbursement Request model
+export interface ProductReimbursementRequest {
+  id: number;
+  store: number;
+  store_name: string;
+  product: number;
+  product_name: string;
+  customer_transaction: number;
+  quantity: number;
+  total_points_cost: number;
+  status: 'pending' | 'approved' | 'shipped' | 'rejected';
+  requested_at: string;
+  processed_at?: string;
+  admin_notes?: string;
+  created_at: string;
+  updated_at: string;
+  customer_username: string;
 }
 
 // Invoice and Transaction Types
@@ -136,6 +170,7 @@ export interface InvoiceUploadRequest {
 export interface RedemptionRequest {
   product_id: number;
   quantity: number;
+  store_id?: number;
 }
 
 export interface RedemptionResponse {
@@ -171,6 +206,31 @@ export interface DashboardStats {
   }>;
 }
 
+// Store Analytics Types
+export interface StoreAnalytics {
+  store_id: number;
+  total_commission: number;
+  total_store_points: number;
+  total_reimbursement_requests: number;
+  pending_reimbursements: number;
+  products_redeemed: number;
+  most_redeemed_products: Array<{
+    product: Product;
+    total_quantity: number;
+    total_points: number;
+  }>;
+  commission_history: StoreCommission[];
+  recent_transactions: Transaction[];
+}
+
+// Product Recommendation Types
+export interface ProductRecommendation {
+  product: Product;
+  recommendation_score: number;
+  reason: 'affordable' | 'popular' | 'new' | 'frequent_customer';
+  discount_percentage?: number;
+}
+
 export interface SystemConfiguration {
   [key: string]: {
     value: string;
@@ -202,10 +262,11 @@ export interface StoreFilters {
 }
 
 export interface ProductFilters {
-  store?: number;
   search?: string;
+  company?: number;
   min_points?: number;
   max_points?: number;
+  is_active?: boolean;
 }
 
 export interface TransactionFilters {
@@ -223,4 +284,18 @@ export interface HealthCheck {
   database: string;
   version: string;
   error?: string;
+}
+
+// Mobile and Camera Types
+export interface CameraCapture {
+  file: File;
+  preview: string;
+  timestamp: string;
+}
+
+export interface InvoiceProcessingStatus {
+  status: 'uploading' | 'processing' | 'completed' | 'error';
+  progress: number;
+  message: string;
+  invoice?: Invoice;
 } 

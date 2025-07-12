@@ -12,7 +12,8 @@ import {
   LogOut,
   Menu,
   X,
-  Shield
+  Shield,
+  Store
 } from 'lucide-react';
 import { formatPoints } from '@/lib/utils';
 import { useState } from 'react';
@@ -35,6 +36,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Wallet', href: '/dashboard', icon: Wallet },
     { name: 'Upload Invoice', href: '/upload', icon: Upload },
     { name: 'Products', href: '/products', icon: ShoppingCart },
+    // Store dashboard - available to all users (they can manage their own store if they have one)
+    { name: 'Store Dashboard', href: '/store', icon: Store },
     { name: 'Profile', href: '/profile', icon: User },
     ...(user?.is_staff ? [{ name: 'Admin Panel', href: '/admin', icon: Shield }] : []),
   ];
@@ -71,6 +74,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <p className="text-sm font-semibold text-blue-600">
                   {formatPoints(user?.balance || 0)} points
                 </p>
+                {user?.company && (
+                  <p className="text-xs text-gray-500">{user.company.name}</p>
+                )}
               </div>
             </div>
           </div>
@@ -138,6 +144,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <p className="text-sm font-semibold text-blue-600">
                     {formatPoints(user?.balance || 0)} points
                   </p>
+                  {user?.company && (
+                    <p className="text-xs text-gray-500">{user.company.name}</p>
+                  )}
                 </div>
               </div>
             </div>
