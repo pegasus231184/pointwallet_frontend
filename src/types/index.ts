@@ -28,9 +28,11 @@ export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
+  password2: string;
   first_name: string;
   last_name: string;
   phone?: string;
+  role: 'customer' | 'store_admin';
 }
 
 export interface AuthResponse {
