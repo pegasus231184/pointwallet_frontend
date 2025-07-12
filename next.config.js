@@ -2,16 +2,21 @@
 const nextConfig = {
   output: 'standalone',
   serverExternalPackages: ['@tanstack/react-query'],
-  env: {
-    NEXT_PUBLIC_API_URL: 'http://localhost:8080/api',
+  publicRuntimeConfig: {
+    // Will be available on both server and client
+    apiUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api',
   },
   async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://localhost:8080/api/:path*',
-      },
-    ];
+    // Only apply rewrites in development
+    if (process.env.NODE_ENV === 'development') {
+      return [
+        {
+          source: '/api/:path*',
+          destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/:path*`,
+        },
+      ];
+    }
+    return [];
   },
   eslint: {
     // Warning: This allows production builds to successfully complete even if

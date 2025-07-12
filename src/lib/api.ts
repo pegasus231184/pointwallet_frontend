@@ -27,7 +27,15 @@ class ApiClient {
   private baseURL: string;
 
   constructor() {
-    this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+    // Use environment variable or default to relative path for Docker
+    // In Docker, frontend and backend are behind the same nginx proxy
+    this.baseURL = process.env.NEXT_PUBLIC_API_URL || '/api';
+    
+    // If the baseURL doesn't start with http, assume it's a relative path
+    if (!this.baseURL.startsWith('http')) {
+      // In production/Docker, use relative path
+      this.baseURL = this.baseURL;
+    }
     
     this.client = axios.create({
       baseURL: this.baseURL,
@@ -161,27 +169,27 @@ class ApiClient {
 
   // Store endpoints - CORRECTED URLs
   async getStores(filters?: StoreFilters): Promise<PaginatedResponse<Store>> {
-    const response = await this.client.get<PaginatedResponse<Store>>('/stores/', {
+    const response = await this.client.get<PaginatedResponse<Store>>('/wallet/stores/', {
       params: filters,
     });
     return response.data;
   }
 
   async getStore(id: number): Promise<Store> {
-    const response = await this.client.get<Store>(`/stores/${id}/`);
+    const response = await this.client.get<Store>(`/wallet/stores/${id}/`);
     return response.data;
   }
 
-  // Product endpoints - CORRECTED URLs (use /api/products/ from stores.urls)
+  // Product endpoints - CORRECTED URLs
   async getProducts(filters?: ProductFilters): Promise<PaginatedResponse<Product>> {
-    const response = await this.client.get<PaginatedResponse<Product>>('/products/', {
+    const response = await this.client.get<PaginatedResponse<Product>>('/wallet/products/', {
       params: filters,
     });
     return response.data;
   }
 
   async getProduct(id: number): Promise<Product> {
-    const response = await this.client.get<Product>(`/products/${id}/`);
+    const response = await this.client.get<Product>(`/wallet/products/${id}/`);
     return response.data;
   }
 
@@ -211,7 +219,7 @@ class ApiClient {
 
   // Admin endpoints - CORRECTED URLs
   async getDashboardStats(): Promise<DashboardStats> {
-    const response = await this.client.get<DashboardStats>('/wallet/admin-dashboard/');
+    const response = await this.client.get<DashboardStats>('/wallet/stats/');
     return response.data;
   }
 
@@ -242,7 +250,7 @@ class ApiClient {
 
   // Health check - CORRECTED URL
   async healthCheck(): Promise<HealthCheck> {
-    const response = await this.client.get<HealthCheck>('/health/');
+    const response = await this.client.get<HealthCheck>('/wallet/health/');
     return response.data;
   }
 
