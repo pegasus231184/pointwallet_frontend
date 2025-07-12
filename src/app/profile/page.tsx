@@ -24,18 +24,23 @@ const ProfilePage = () => {
     phone: user?.phone || '',
   });
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setMessage(null);
     
     try {
       await updateUser(formData);
       setEditing(false);
-      alert('Profile updated successfully!');
+      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      
+      // Clear message after 3 seconds
+      setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       console.error('Failed to update profile:', error);
-      alert('Failed to update profile. Please try again.');
+      setMessage({ type: 'error', text: 'Failed to update profile. Please try again.' });
     } finally {
       setLoading(false);
     }
@@ -95,6 +100,17 @@ const ProfilePage = () => {
               </button>
             )}
           </div>
+
+          {/* Success/Error Message */}
+          {message && (
+            <div className={`mb-4 p-3 rounded-lg ${
+              message.type === 'success' 
+                ? 'bg-green-50 text-green-800 border border-green-200' 
+                : 'bg-red-50 text-red-800 border border-red-200'
+            }`}>
+              {message.text}
+            </div>
+          )}
 
           {/* Profile Form */}
           <form onSubmit={handleSubmit}>
